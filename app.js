@@ -44,11 +44,18 @@ webSocketServer.on("request", function (req) {
         var data = JSON.parse(msg.utf8Data);
         var now = new Date();
         var post = new Post();
-        broadCast({
-            type: "post",
-            name: validator.escape(data.name ? data.name : "No Name"),
-            text: validator.escape(data.text).split("\n").join("<br>"),
-            date: now.toLocaleString()
+        post.name = data.name;
+        post.text = data.text;
+        post.date = now;
+        post.save(function(err) {
+            if (!err) {
+                broadCast({
+                    type: "post",
+                    name: validator.escape(post.name ? post.name : "No Name"),
+                    text: validator.escape(post.text).split("\n").join("<br>"),
+                    date: post.date
+                });
+            }
         });
     });
 
@@ -61,6 +68,14 @@ webSocketServer.on("request", function (req) {
     });
 
     clients[connId] = {connection: connection};
+    Post.find(function(err, docs) {
+        if (!err) {
+            connection.send(JSON.stringify({
+                type: "load",
+                posts: docs
+            }));
+        }
+    });
     sendClientsCount();
 });
 

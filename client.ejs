@@ -73,6 +73,10 @@
                 }
             });
 
+            var createPostRow = function(data) {
+                return "<div class='alert alert-block post'><div>" + data.name + " : " + data.date + "</div>" + data.text + "</div>";
+            };
+
             ws.onmessage = function(e) {
                 var data = JSON.parse(e.data);
 
@@ -80,11 +84,18 @@
                     if ($("div.post", board).size() > 0) {
                         board.append("<hr class='separator'>");
                     }
-                    board.append("<div class='alert alert-block post'><div>" + data.name + " : " + data.date + "</div>" + data.text + "</div>");
+                    board.append(createPostRow(data));
                     $("html,body").animate({scrollTop: $("#footer").offset().top}, "slow");
 
                 } else if (data.type == "clients") {
                     $("span", "#clients-count").text(data.count);
+
+                } else if (data.type == "load") {
+                    board.children().remove();
+                    for (var i in data.posts) {
+                        if (i > 0) { board.append("<hr class='separator'>"); }
+                        board.append(createPostRow(data.posts[i]));
+                    }
                 }
             };
         });
