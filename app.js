@@ -44,15 +44,15 @@ webSocketServer.on("request", function (req) {
         var data = JSON.parse(msg.utf8Data);
         var now = new Date();
         var post = new Post();
-        post.name = data.name;
-        post.text = data.text;
+        post.name = validator.escape(data.name ? data.name : "No Name");
+        post.text = validator.escape(data.text).split("\n").join("<br>");
         post.date = now;
         post.save(function(err) {
             if (!err) {
                 broadCast({
                     type: "post",
-                    name: validator.escape(post.name ? post.name : "No Name"),
-                    text: validator.escape(post.text).split("\n").join("<br>"),
+                    name: post.name,
+                    text: post.text,
                     date: post.date
                 });
             }
