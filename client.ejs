@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css">
+    <style type="text/css">
+        #header {
+            background-color: #FFF;
+            box-shadow:rgba(129, 143, 161, 0.45098) 0px 8px 15px -3px;
+            -webkit-box-shadow:rgba(129, 143, 161, 0.45098) 0px 8px 15px -3px;
+            -moz-box-shadow:rgba(129, 143, 161, 0.45098) 0px 8px 15px -3px;
+            height: 255px;
+        }
+
+        #post {
+            height: 70px;
+        }
+
+        #clients-count {
+            text-align: left;
+            line-height: 40px;
+        }
+
+        #board {
+            margin-top: 255px;
+            padding: 20px 0;
+        }
+
+        .separator {
+            margin: 20px 0 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="header" class="navbar-fixed-top text-center">
+        <div class="container">
+            <h1>Websocket Chat</h1>
+            <div class="form-inline" style="margin-bottom: 5px;">
+                <label for="name">お名前</label>
+                <input type="text" id="name" class="input-medium">
+            </div>
+            <div>
+                <textarea rows="3" id="post" class="input-xxlarge"></textarea><br>
+                <button id="post-button" class="btn">POST</button>
+            </div>
+            <div id="clients-count">接続中： <span></span></div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row-fluid">
+            <div class="span12">
+                <div id="board"></div>
+            </div>
+        </div>
+    </div>
+    <div id="footer"></div>
+
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            var ws = new WebSocket("<%=socketUri %>");
+            var postButton = $("#post-button");
+            var board = $("#board");
+
+            postButton.bind("click", function() {
+                if ($("#post").val()) {
+                    var data = {
+                        name: $("#name").val(),
+                        text: $("#post").val()
+                    };
+                    ws.send(JSON.stringify(data));
+                }
+            });
+
+            ws.onmessage = function(e) {
+                var data = JSON.parse(e.data);
+
+                if (data.type == "post") {
+                    if ($("div.post", board).size() > 0) {
+                        board.append("<hr class='separator'>");
+                    }
+                    board.append("<div class='alert alert-block post'><div>" + data.name + " : " + data.date + "</div>" + data.text + "</div>");
+                    $("html,body").animate({scrollTop: $("#footer").offset().top}, "slow");
+
+                } else if (data.type == "clients") {
+                    $("span", "#clients-count").text(data.count);
+                }
+            };
+        });
+    </script>
+</body>
+</html>
